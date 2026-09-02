@@ -1,199 +1,205 @@
 local UIS, PL, RS, LT = game:GetService("UserInputService"), game:GetService("Players"), game:GetService("RunService"), game:GetService("Lighting")
-local LP, Cam, Mouse, TargetGui = PL.LocalPlayer, workspace.CurrentCamera, PL.LocalPlayer:GetMouse(), PL.LocalPlayer:WaitForChild("PlayerGui")
-if TargetGui:FindFirstChild("PkfilmUI") then TargetGui.PkfilmUI:Destroy() end
-local SG, espC = Instance.new("ScreenGui", TargetGui), {} SG.Name = "PkfilmUI"
-local espE, noclipE, silentE, enviroE, jumpE, fastCrawlE, clickTpE = false, false, false, false, false, false, false
-local SilentRadius = 150
+local LP, Cam, Mouse = PL.LocalPlayer, workspace.CurrentCamera, PL.LocalPlayer:GetMouse()
 
-local oL = {
-    Amb = LT.Ambient, OAmb = LT.OutdoorAmbient, FStart = LT.FogStart, FEnd = LT.FogEnd,
-    Bright = LT.Brightness, Shads = LT.GlobalShadows, Exp = LT.ExposureCompensation, Time = LT.ClockTime
-}
+-- ฟังก์ชันสร้าง UI ใหม่เมื่อตายหรือเข้าเกม
+local function SetupUI()
+    local TargetGui = LP:WaitForChild("PlayerGui")
+    if TargetGui:FindFirstChild("PkfilmUI") then TargetGui.PkfilmUI:Destroy() end
+    
+    local SG, espC = Instance.new("ScreenGui", TargetGui), {} SG.Name = "PkfilmUI"
+    SG.ResetOnSpawn = false -- ป้องกันไม่ให้ UI หายเมื่อตัวละครตายหรือรีสปอน
+    
+    local espE, noclipE, silentE, enviroE, jumpE, fastCrawlE, clickTpE = false, false, false, false, false, false, false
+    local SilentRadius = 150
 
-local MF = Instance.new("Frame", SG) MF.BackgroundColor3, MF.Position, MF.Size, MF.BorderSizePixel = Color3.fromRGB(15,15,18), UDim2.new(0.5,-165,0.5,-142), UDim2.new(0,330,0,320), 0 
-Instance.new("UICorner", MF).CornerRadius = UDim.new(0,12)
-Instance.new("UIStroke", MF).Color = Color3.fromRGB(40,40,45)
+    local oL = {
+        Amb = LT.Ambient, OAmb = LT.OutdoorAmbient, FStart = LT.FogStart, FEnd = LT.FogEnd,
+        Bright = LT.Brightness, Shads = LT.GlobalShadows, Exp = LT.ExposureCompensation, Time = LT.ClockTime
+    }
 
-local TB = Instance.new("Frame", MF) TB.BackgroundColor3, TB.Size, TB.BorderSizePixel = Color3.fromRGB(22,22,26), UDim2.new(1,0,0,50), 0
-Instance.new("UICorner", TB).CornerRadius = UDim.new(0,12)
-local Fix = Instance.new("Frame", TB) Fix.BackgroundColor3, Fix.BorderSizePixel, Fix.Position, Fix.Size = Color3.fromRGB(22,22,26), 0, UDim2.new(0,0,1,-5), UDim2.new(1,0,0,5)
+    local MF = Instance.new("Frame", SG) MF.BackgroundColor3, MF.Position, MF.Size, MF.BorderSizePixel = Color3.fromRGB(15,15,18), UDim2.new(0.5,-165,0.5,-142), UDim2.new(0,330,0,320), 0 
+    Instance.new("UICorner", MF).CornerRadius = UDim.new(0,12)
+    Instance.new("UIStroke", MF).Color = Color3.fromRGB(40,40,45)
 
-local TL = Instance.new("TextLabel", TB) TL.BackgroundTransparency, TL.Text, TL.TextColor3, TL.TextSize, TL.Font, TL.Position, TL.Size = 1, "SURVIVAL CONTROL", Color3.fromRGB(245,245,250), 13, 3, UDim2.new(0,15,0,8), UDim2.new(1,-30,0,18)
-local CR = Instance.new("TextLabel", TB) CR.BackgroundTransparency, CR.Text, CR.TextColor3, CR.TextSize, CR.Font, CR.Position, CR.Size = 1, "Premium Edition • By PKFILM", Color3.fromRGB(0,180,216), 10, 4, UDim2.new(0,15,0,24), UDim2.new(1,-30,0,16)
-Instance.new("Frame", TB).BackgroundColor3, Instance.new("Frame", TB).BorderSizePixel, Instance.new("Frame", TB).Position, Instance.new("Frame", TB).Size = Color3.fromRGB(35,35,40), 0, UDim2.new(0,0,1,0), UDim2.new(1,0,0,1)
+    local TB = Instance.new("Frame", MF) TB.BackgroundColor3, TB.Size, TB.BorderSizePixel = Color3.fromRGB(22,22,26), UDim2.new(1,0,0,50), 0
+    Instance.new("UICorner", TB).CornerRadius = UDim.new(0,12)
+    local Fix = Instance.new("Frame", TB) Fix.BackgroundColor3, Fix.BorderSizePixel, Fix.Position, Fix.Size = Color3.fromRGB(22,22,26), 0, UDim2.new(0,0,1,-5), UDim2.new(1,0,0,5)
 
-local Cont = Instance.new("Frame", MF) Cont.BackgroundTransparency, Cont.Position, Cont.Size = 1, UDim2.new(0,0,0,55), UDim2.new(1,0,1,-60)
-local UL = Instance.new("UIListLayout", Cont) UL.SortOrder, UL.Padding, UL.HorizontalAlignment = 2, UDim.new(0,5), 1
+    local TL = Instance.new("TextLabel", TB) TL.BackgroundTransparency, TL.Text, TL.TextColor3, TL.TextSize, TL.Font, TL.Position, TL.Size = 1, "SURVIVAL CONTROL", Color3.fromRGB(245,245,250), 13, 3, UDim2.new(0,15,0,8), UDim2.new(1,-30,0,18)
+    local CR = Instance.new("TextLabel", TB) CR.BackgroundTransparency, CR.Text, CR.TextColor3, CR.TextSize, CR.Font, CR.Position, CR.Size = 1, "Premium Edition • By PKFILM", Color3.fromRGB(0,180,216), 10, 4, UDim2.new(0,15,0,24), UDim2.new(1,-30,0,16)
+    Instance.new("Frame", TB).BackgroundColor3, Instance.new("Frame", TB).BorderSizePixel, Instance.new("Frame", TB).Position, Instance.new("Frame", TB).Size = Color3.fromRGB(35,35,40), 0, UDim2.new(0,0,1,0), UDim2.new(1,0,0,1)
 
-local function rESP(p) if espC[p] then pcall(function() for _,v in pairs(espC[p]) do v:Destroy() end end) espC[p] = nil end end
-local function getClosest()
-    local t, sD = nil, silentE and SilentRadius or math.huge
-    for _,p in ipairs(PL:GetPlayers()) do
-        if p ~= LP and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local pos, onS = Cam:WorldToViewportPoint(p.Character.Head.Position)
-            if onS then
-                local d = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-                if d < sD then sD, t = d, p end
+    local Cont = Instance.new("Frame", MF) Cont.BackgroundTransparency, Cont.Position, Cont.Size = 1, UDim2.new(0,0,0,55), UDim2.new(1,0,1,-60)
+    local UL = Instance.new("UIListLayout", Cont) UL.SortOrder, UL.Padding, UL.HorizontalAlignment = 2, UDim.new(0,5), 1
+
+    local function rESP(p) if espC[p] then pcall(function() for _,v in pairs(espC[p]) do v:Destroy() end end) espC[p] = nil end end
+    local function getClosest()
+        local t, sD = nil, silentE and SilentRadius or math.huge
+        for _,p in ipairs(PL:GetPlayers()) do
+            if p ~= LP and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                local pos, onS = Cam:WorldToViewportPoint(p.Character.Head.Position)
+                if onS then
+                    local d = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                    if d < sD then sD, t = d, p end
+                end
+            end
+        end return t
+    end
+
+    local function CreateButton(name, cb)
+        local B = Instance.new("TextButton", Cont) B.BackgroundColor3, B.Size, B.Text, B.TextColor3, B.Font, B.TextSize = Color3.fromRGB(22,22,26), UDim2.new(0,300,0,30), "  "..name.." [OFF]", Color3.fromRGB(200,200,205), 4, 12
+        B.TextXAlignment = 0 Instance.new("UICorner", B).CornerRadius = UDim.new(0,6) local B_S = Instance.new("UIStroke", B) B_S.Color = Color3.fromRGB(35,35,40)
+        local s = false B.MouseButton1Click:Connect(function() s = not s
+            B.Text, B.TextColor3, B_S.Color, B.BackgroundColor3 = "  "..name..(s and " [ON]" or " [OFF]"), s and Color3.new(1,1,1) or Color3.fromRGB(200,200,205), s and Color3.fromRGB(46,204,113) or Color3.fromRGB(35,35,40), s and Color3.fromRGB(26,36,33) or Color3.fromRGB(22,22,26)
+            if cb then cb(s) end
+        end)
+    end
+
+    local drag, dStart, sPos
+    TB.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drag, dStart, sPos = true, i.Position, MF.Position i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then drag = false end end) end end)
+    TB.InputChanged:Connect(function(i) if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then local d = i.Position - dStart MF.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + d.X, sPos.Y.Scale, sPos.Y.Offset + d.Y) end end)
+    UIS.InputBegan:Connect(function(i, g) if not g and i.KeyCode == Enum.KeyCode.LeftAlt then MF.Visible = not MF.Visible end end)
+
+    Mouse.Button1Down:Connect(function()
+        if clickTpE and UIS:IsKeyDown(Enum.KeyCode.LeftControl) and Mouse.Target then
+            if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                LP.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, 3, 0))
             end
         end
-    end return t
-end
-
-local function CreateButton(name, cb)
-    local B = Instance.new("TextButton", Cont) B.BackgroundColor3, B.Size, B.Text, B.TextColor3, B.Font, B.TextSize = Color3.fromRGB(22,22,26), UDim2.new(0,300,0,30), "  "..name.." [OFF]", Color3.fromRGB(200,200,205), 4, 12
-    B.TextXAlignment = 0 Instance.new("UICorner", B).CornerRadius = UDim.new(0,6) local B_S = Instance.new("UIStroke", B) B_S.Color = Color3.fromRGB(35,35,40)
-    local s = false B.MouseButton1Click:Connect(function() s = not s
-        B.Text, B.TextColor3, B_S.Color, B.BackgroundColor3 = "  "..name..(s and " [ON]" or " [OFF]"), s and Color3.new(1,1,1) or Color3.fromRGB(200,200,205), s and Color3.fromRGB(46,204,113) or Color3.fromRGB(35,35,40), s and Color3.fromRGB(26,36,33) or Color3.fromRGB(22,22,26)
-        if cb then cb(s) end
     end)
-end
 
-local drag, dStart, sPos
-TB.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drag, dStart, sPos = true, i.Position, MF.Position i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then drag = false end end) end end)
-TB.InputChanged:Connect(function(i) if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then local d = i.Position - dStart MF.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + d.X, sPos.Y.Scale, sPos.Y.Offset + d.Y) end end)
-UIS.InputBegan:Connect(function(i, g) if not g and i.KeyCode == Enum.KeyCode.LeftAlt then MF.Visible = not MF.Visible end end)
+    local function checkWall(targetCharacter, targetHead)
+        if not Cam or not LP.Character then return true end
+        local params = RaycastParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = {LP.Character, targetCharacter, Cam}
+        params.IgnoreWater = true
+        local origin = Cam.CFrame.Position
+        local direction = targetHead.Position - origin
+        local raycastResult = workspace:Raycast(origin, direction, params)
+        if raycastResult then return true end
+        return false
+    end
 
-Mouse.Button1Down:Connect(function()
-    if clickTpE and UIS:IsKeyDown(Enum.KeyCode.LeftControl) and Mouse.Target then
-        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-            LP.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, 3, 0))
+    local loopConnection
+    loopConnection = RS.RenderStepped:Connect(function()
+        -- ถ้าไม่มี UI หรือถูกลบ ให้ยกเลิก Loop เพื่อไม่ให้โค้ดค้างหลังบ้าน
+        if not SG or not SG.Parent then 
+            loopConnection:Disconnect() 
+            return 
         end
-    end
-end)
 
-RS.RenderStepped:Connect(function() 
-    if noclipE and LP.Character then 
-        for _, p in ipairs(LP.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end 
-    end 
-    if jumpE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
-        local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        if hum.UseJumpPower then hum.JumpPower = 75 else hum.JumpHeight = 12 end
-    end
-    if fastCrawlE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
-        local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        local isCrawling = false
-        for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
-            if track.Name:lower():find("crawl") or track.Name:lower():find("prone") or track.Animation.AnimationId:find("crawl") then
-                isCrawling = true
-                break
+        if noclipE and LP.Character then 
+            for _, p in ipairs(LP.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end 
+        end 
+        if jumpE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
+            local hum = LP.Character:FindFirstChildOfClass("Humanoid")
+            if hum.UseJumpPower then hum.JumpPower = 75 else hum.JumpHeight = 12 end
+        end
+        if fastCrawlE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
+            local hum = LP.Character:FindFirstChildOfClass("Humanoid")
+            local isCrawling = false
+            for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+                if track.Name:lower():find("crawl") or track.Name:lower():find("prone") or track.Animation.AnimationId:find("crawl") then
+                    isCrawling = true
+                    break
+                end
+            end
+            if isCrawling or (LP.Character:FindFirstChild("UpperTorso") and LP.Character.UpperTorso.Position.Y - hum.RootPart.Position.Y < 0) then
+                hum.WalkSpeed = 24
             end
         end
-        if isCrawling or (LP.Character:FindFirstChild("UpperTorso") and LP.Character.UpperTorso.Position.Y - hum.RootPart.Position.Y < 0) then
-            hum.WalkSpeed = 24
-        end
-    end
-end)
 
--- ฟังก์ชันตรวจสอบสิ่งกีดขวาง (Wall Check)
-local function checkWall(targetCharacter, targetHead)
-    if not Cam or not LP.Character then return true end
-    
-    local params = RaycastParams.new()
-    params.FilterType = Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances = {LP.Character, targetCharacter, Cam} -- ข้ามตัวเรา เป้าหมาย และกล้อง
-    params.IgnoreWater = true
-    
-    local origin = Cam.CFrame.Position
-    local direction = targetHead.Position - origin
-    local raycastResult = workspace:Raycast(origin, direction, params)
-    
-    if raycastResult then
-        return true -- มีวัตถุอื่นบังอยู่ (อยู่หลังกำแพง)
-    end
-    return false -- ไม่มีอะไรบัง (นอกกำแพง)
-end
-
-RS.RenderStepped:Connect(function()
-    if espE then 
-        for _, p in ipairs(PL:GetPlayers()) do 
-            if p ~= LP and p.Character then
-                local head = p.Character:FindFirstChild("Head")
-                local hum = p.Character:FindFirstChildOfClass("Humanoid")
-                
-                if head and hum and hum.Health > 0 then 
-                    local tool = p.Character:FindFirstChildOfClass("Tool")
+        if espE then 
+            for _, p in ipairs(PL:GetPlayers()) do 
+                if p ~= LP and p.Character then
+                    local head = p.Character:FindFirstChild("Head")
+                    local hum = p.Character:FindFirstChildOfClass("Humanoid")
                     
-                    if not espC[p] then 
-                        espC[p] = {hl = Instance.new("Highlight", SG), bb = Instance.new("BillboardGui", SG)} 
-                        espC[p].hl.FillTransparency = 0.5 
-                        -- ปรับความกว้าง-สูง และ StudsOffset เพื่อให้อยู่กึ่งกลางหัวและไม่ซ้อนกัน
-                        espC[p].bb.AlwaysOnTop, espC[p].bb.Size, espC[p].bb.StudsOffset = true, UDim2.new(0,250,0,100), Vector3.new(0,4,0)
+                    if head and hum and hum.Health > 0 then 
+                        local tool = p.Character:FindFirstChildOfClass("Tool")
                         
-                        local tl = Instance.new("TextLabel", espC[p].bb) 
-                        tl.Name, tl.Size, tl.BackgroundTransparency, tl.TextColor3 = "Label", UDim2.new(1,0,1,0), 1, Color3.new(1,1,1)
-                        tl.TextStrokeTransparency = 0.5
-                    end
-                    
-                    if espC[p].hl.Adornee ~= p.Character then espC[p].hl.Adornee = p.Character end
-                    if espC[p].bb.Adornee ~= head then espC[p].bb.Adornee = head end
-                    
-                    -- ตรวจสอบกำแพงเพื่อเปลี่ยนสี Highlight
-                    if checkWall(p.Character, head) then
-                        -- หลังกำแพง -> สีม่วง (RGB: 155, 89, 182)
-                        espC[p].hl.FillColor = Color3.fromRGB(155, 89, 182)
-                        espC[p].hl.OutlineColor = Color3.fromRGB(155, 89, 182)
-                    else
-                        -- นอกกำแพง -> สีแดง (RGB: 255, 50, 50)
-                        espC[p].hl.FillColor = Color3.fromRGB(255, 50, 50)
-                        espC[p].hl.OutlineColor = Color3.fromRGB(255, 50, 50)
-                    end
-                    
-                    if espC[p].bb:FindFirstChild("Label") then 
-                        local distance = 0
-                        if LP.Character and LP.Character:FindFirstChild("Head") then
-                            distance = (LP.Character.Head.Position - head.Position).Magnitude
+                        if not espC[p] then 
+                            espC[p] = {hl = Instance.new("Highlight", SG), bb = Instance.new("BillboardGui", SG)} 
+                            espC[p].hl.FillTransparency = 0.5 
+                            espC[p].bb.AlwaysOnTop, espC[p].bb.Size, espC[p].bb.StudsOffset = true, UDim2.new(0,250,0,100), Vector3.new(0,4,0)
+                            
+                            local tl = Instance.new("TextLabel", espC[p].bb) 
+                            tl.Name, tl.Size, tl.BackgroundTransparency, tl.TextColor3 = "Label", UDim2.new(1,0,1,0), 1, Color3.new(1,1,1)
+                            tl.TextStrokeTransparency = 0.5
                         end
-                        -- ลำดับการแสดงผล: ชื่อปืน (บนสุด) -> ชื่อผู้เล่น (กลาง) -> ระยะทางแบบปัดเศษไม่มีหน่วย (ล่างสุด)
-                        local weaponName = tool and tool.Name or "Bare Fists"
-                        espC[p].bb.Label.Text = string.format("%s\n%s\n%.0f", weaponName, p.Name, distance)
+                        
+                        if espC[p].hl.Adornee ~= p.Character then espC[p].hl.Adornee = p.Character end
+                        if espC[p].bb.Adornee ~= head then espC[p].bb.Adornee = head end
+                        
+                        if checkWall(p.Character, head) then
+                            espC[p].hl.FillColor = Color3.fromRGB(155, 89, 182)
+                            espC[p].hl.OutlineColor = Color3.fromRGB(155, 89, 182)
+                        else
+                            espC[p].hl.FillColor = Color3.fromRGB(255, 50, 50)
+                            espC[p].hl.OutlineColor = Color3.fromRGB(255, 50, 50)
+                        end
+                        
+                        if espC[p].bb:FindFirstChild("Label") then 
+                            local distance = 0
+                            if LP.Character and LP.Character:FindFirstChild("Head") then
+                                distance = (LP.Character.Head.Position - head.Position).Magnitude
+                            end
+                            local weaponName = tool and tool.Name or "Bare Fists"
+                            espC[p].bb.Label.Text = string.format("%s\n%s\n%.0f", weaponName, p.Name, distance)
+                        end 
+                    else 
+                        rESP(p) 
                     end 
-                else 
-                    rESP(p) 
                 end 
             end 
-        end 
-    else 
-        for p, _ in pairs(espC) do rESP(p) end 
-    end
-    
-    if enviroE then 
-        pcall(function() 
-            LT.ClockTime, LT.Ambient, LT.OutdoorAmbient = 14, Color3.fromRGB(160,160,160), Color3.fromRGB(160,160,160)
-            LT.Brightness, LT.ExposureCompensation, LT.GlobalShadows = 2.5, 0.1, false
-            LT.FogStart, LT.FogEnd = 9e9, 9e9
-            workspace.Terrain.Decoration = false
-            for _, v in ipairs(LT:GetChildren()) do if v:IsA("Atmosphere") or v:IsA("Clouds") then v:Destroy() end end 
-        end) 
-    else
-        pcall(function() LT.Ambient, LT.OutdoorAmbient, LT.Brightness, LT.ExposureCompensation, LT.GlobalShadows, LT.ClockTime = oL.Amb, oL.OAmb, oL.Bright, oL.Exp, oL.Shads, oL.Time workspace.Terrain.Decoration = true end)
-    end
-end)
-PL.PlayerRemoving:Connect(rESP)
-
-pcall(function()
-    local gmt = getrawmetatable(game) setreadonly(gmt, false)
-    local oldIdx, oldNamecall = gmt.__index, gmt.__namecall
-
-    gmt.__index = newcclosure(function(self, idx)
-        if not checkcaller() and self == Mouse and silentE and (idx == "Hit" or idx == "Target") then
-            local t = getClosest()
-            if t and t.Character and t.Character:FindFirstChild("Head") then 
-                return idx == "Hit" and t.Character.Head.CFrame or t.Character.Head 
-            end
-        end 
-        return oldIdx(self, idx)
+        else 
+            for p, _ in pairs(espC) do rESP(p) end 
+        end
+        
+        if enviroE then 
+            pcall(function() 
+                LT.ClockTime, LT.Ambient, LT.OutdoorAmbient = 14, Color3.fromRGB(160,160,160), Color3.fromRGB(160,160,160)
+                LT.Brightness, LT.ExposureCompensation, LT.GlobalShadows = 2.5, 0.1, false
+                LT.FogStart, LT.FogEnd = 9e9, 9e9
+                workspace.Terrain.Decoration = false
+                for _, v in ipairs(LT:GetChildren()) do if v:IsA("Atmosphere") or v:IsA("Clouds") then v:Destroy() end end 
+            end) 
+        else
+            pcall(function() LT.Ambient, LT.OutdoorAmbient, LT.Brightness, LT.ExposureCompensation, LT.GlobalShadows, LT.ClockTime = oL.Amb, oL.OAmb, oL.Bright, oL.Exp, oL.Shads, oL.Time workspace.Terrain.Decoration = true end)
+        end
     end)
 
-    gmt.__namecall = newcclosure(function(self, ...)
-        return oldNamecall(self, ...)
-    end)
-    setreadonly(gmt, true)
-end)
+    PL.PlayerRemoving:Connect(rESP)
 
-CreateButton("Player ESP (มองผู้เล่น + อาวุธ)", function(e) espE = e end)
-CreateButton("Clear Env (กลางวัน/ลบหมอก/ลบหญ้า)", function(e) enviroE = e end)
-CreateButton("Silent Aim (ดูดหัวอัตโนมัติ)", function(e) silentE = e end)
-CreateButton("Noclip Mode (วิ่งทะลุกำแพง)", function(e) noclipE = e end)
-CreateButton("Jump Mod (กระโดดสูงขึ้นเล็กน้อย)", function(e) jumpE = e if not e and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then local hum = LP.Character:FindFirstChildOfClass("Humanoid") hum.JumpPower = 50 hum.JumpHeight = 7.2 end end)
-CreateButton("Fast Crawl (คลานไวขึ้น)", function(e) fastCrawlE = e end)
-CreateButton("Click TP (กด Ctrl + คลิกซ้ายเพื่อวาร์ป)", function(e) clickTpE = e end)
+    pcall(function()
+        local gmt = getrawmetatable(game) setreadonly(gmt, false)
+        local oldIdx = gmt.__index
+
+        gmt.__index = newcclosure(function(self, idx)
+            if not checkcaller() and self == Mouse and silentE and (idx == "Hit" or idx == "Target") then
+                local t = getClosest()
+                if t and t.Character and t.Character:FindFirstChild("Head") then 
+                    return idx == "Hit" and t.Character.Head.CFrame or t.Character.Head 
+                end
+            end 
+            return oldIdx(self, idx)
+        end)
+        setreadonly(gmt, true)
+    end)
+
+    CreateButton("Player ESP (มองผู้เล่น + อาวุธ)", function(e) espE = e end)
+    CreateButton("Clear Env (กลางวัน/ลบหมอก/ลบหญ้า)", function(e) enviroE = e end)
+    CreateButton("Silent Aim (ดูดหัวอัตโนมัติ)", function(e) silentE = e end)
+    CreateButton("Noclip Mode (วิ่งทะลุกำแพง)", function(e) noclipE = e end)
+    CreateButton("Jump Mod (กระโดดสูงขึ้นเล็กน้อย)", function(e) jumpE = e if not e and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then local hum = LP.Character:FindFirstChildOfClass("Humanoid") hum.JumpPower = 50 hum.JumpHeight = 7.2 end end)
+    CreateButton("Fast Crawl (คลานไวขึ้น)", function(e) fastCrawlE = e end)
+    CreateButton("Click TP (กด Ctrl + คลิกซ้ายเพื่อวาร์ป)", function(e) clickTpE = e end)
+end
+
+-- สั่งรัน UI ทันที และผูกฟังก์ชันสร้าง UI ใหม่ทุกครั้งที่ตัวละครเกิดใหม่ (สปอน)
+SetupUI()
+LP.CharacterAdded:Connect(function()
+    task.wait(0.5) -- รอให้ระบบโหลดเสร็จสมบูรณ์
+    SetupUI()
+end)
