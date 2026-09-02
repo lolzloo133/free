@@ -7,17 +7,17 @@ local SG, espC = Instance.new("ScreenGui", TargetGui), {}
 SG.Name = "PkfilmUI"
 SG.ResetOnSpawn = false -- ป้องกัน UI หายเวลาตาย
 
-local espE, noclipE, silentE, enviroE, jumpE, fastCrawlE, clickTpE, aimbotE = false, false, false, false, false, false, false, false
+local espE, noclipE, silentE, enviroE, jumpE, aimbotE = false, false, false, false, false, false
 local SilentRadius = 150
-local isClickingRight = false -- ตัวแปรเช็คการกดคลิกขวา
+local isClickingRight = false 
 
 local oL = {
     Amb = LT.Ambient, OAmb = LT.OutdoorAmbient, FStart = LT.FogStart, FEnd = LT.FogEnd,
     Bright = LT.Brightness, Shads = LT.GlobalShadows, Exp = LT.ExposureCompensation, Time = LT.ClockTime
 }
 
--- ขยายขนาดโครงเมนูหลัก (MF) เพื่อรองรับปุ่ม Aimbot ที่เพิ่มเข้ามาใหม่
-local MF = Instance.new("Frame", SG) MF.BackgroundColor3, MF.Position, MF.Size, MF.BorderSizePixel = Color3.fromRGB(15,15,18), UDim2.new(0.5,-165,0.5,-142), UDim2.new(0,330,0,360), 0 
+-- ปรับขนาดหน้าต่างเมนูกระชับพอดีกับปุ่มที่เหลือ (300)
+local MF = Instance.new("Frame", SG) MF.BackgroundColor3, MF.Position, MF.Size, MF.BorderSizePixel = Color3.fromRGB(15,15,18), UDim2.new(0.5,-165,0.5,-142), UDim2.new(0,330,0,300), 0 
 Instance.new("UICorner", MF).CornerRadius = UDim.new(0,12)
 Instance.new("UIStroke", MF).Color = Color3.fromRGB(40,40,45)
 
@@ -61,7 +61,6 @@ TB.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.Mouse
 TB.InputChanged:Connect(function(i) if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then local d = i.Position - dStart MF.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + d.X, sPos.Y.Scale, sPos.Y.Offset + d.Y) end end)
 UIS.InputBegan:Connect(function(i, g) if not g and i.KeyCode == Enum.KeyCode.LeftAlt then MF.Visible = not MF.Visible end end)
 
--- ดักจับการกดคลิกขวาเพื่อใช้สำหรับฟังก์ชัน Aimbot ล็อกเป้า
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.UserInputType == Enum.UserInputType.MouseButton2 then
         isClickingRight = true
@@ -74,15 +73,6 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
-Mouse.Button1Down:Connect(function()
-    if clickTpE and UIS:IsKeyDown(Enum.KeyCode.LeftControl) and Mouse.Target then
-        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-            LP.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, 3, 0))
-        end
-    end
-end)
-
--- ฟังก์ชันตรวจสอบสิ่งกีดขวาง (Wall Check)
 local function checkWall(targetCharacter, targetHead)
     if not Cam or not LP.Character then return true end
     local params = RaycastParams.new()
@@ -102,28 +92,13 @@ RS.RenderStepped:Connect(function()
     end 
     if jumpE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
         local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        if hum.UseJumpPower then hum.JumpPower = 75 else hum.JumpHeight = 12 end
-    end
-    if fastCrawlE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
-        local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        local isCrawling = false
-        for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
-            if track.Name:lower():find("crawl") or track.Name:lower():find("prone") or track.Animation.AnimationId:find("crawl") then
-                isCrawling = true
-                break
-            end
-        end
-        if isCrawling or (LP.Character:FindFirstChild("UpperTorso") and LP.Character.UpperTorso.Position.Y - hum.RootPart.Position.Y < 0) then
-            hum.WalkSpeed = 24
-        end
+        if hum.UseJumpPower then hum.JumpPower = 120 else hum.JumpHeight = 25 end -- ปรับกระโดดสูงพิเศษแล้ว
     end
 
-    -- ทำงานเมื่อเปิดปุ่ม Aimbot และผู้เล่นกดคลิกขวาค้างไว้
     if aimbotE and isClickingRight then
         local targetPlayer = getClosest()
         if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
             local targetHead = targetPlayer.Character.Head
-            -- ตรวจสอบว่าเป้าหมายไม่ได้อยู่หลังกำแพงก่อนจะล็อกเป้า (หรือเอาออกหากต้องการล็อกทะลุกำแพง)
             if not checkWall(targetPlayer.Character, targetHead) then
                 Cam.CFrame = CFrame.new(Cam.CFrame.Position, targetHead.Position)
             end
@@ -168,7 +143,7 @@ RS.RenderStepped:Connect(function()
                             distance = (LP.Character.Head.Position - head.Position).Magnitude
                         end
                         local weaponName = tool and tool.Name or "Bare Fists"
-                        espC[p].bb.Label.Text = string.format("%s\n%s\n%.0f", weaponName, p.Name, distance)
+                        espC[p].bb.Label.Text = string.format("%s\n%s\n%.0f", weaponName, p.Name, distance) -- แสดงระยะล่างสุดไม่มีจุดทศนิยม
                     end 
                 else 
                     rESP(p) 
@@ -213,12 +188,9 @@ pcall(function()
     setreadonly(gmt, true)
 end)
 
--- ลงทะเบียนปุ่มบนเมนูตามลำดับ
 CreateButton("Player ESP (มองผู้เล่น + อาวุธ)", function(e) espE = e end)
 CreateButton("Clear Env (กลางวัน/ลบหมอก/ลบหญ้า)", function(e) enviroE = e end)
 CreateButton("Silent Aim (ดูดหัวอัตโนมัติ)", function(e) silentE = e end)
-CreateButton("Aimbot Lock (คลิกขวาค้างเพื่อล็อกเป้า)", function(e) aimbotE = e end) -- ปุ่มที่เพิ่มเข้ามาใหม่
+CreateButton("Aimbot Lock (คลิกขวาค้างเพื่อล็อกเป้า)", function(e) aimbotE = e end)
 CreateButton("Noclip Mode (วิ่งทะลุกำแพง)", function(e) noclipE = e end)
-CreateButton("Jump Mod (กระโดดสูงขึ้นเล็กน้อย)", function(e) jumpE = e if not e and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then local hum = LP.Character:FindFirstChildOfClass("Humanoid") hum.JumpPower = 50 hum.JumpHeight = 7.2 end end)
-CreateButton("Fast Crawl (คลานไวขึ้น)", function(e) fastCrawlE = e end)
-CreateButton("Click TP (กด Ctrl + คลิกซ้ายเพื่อวาร์ป)", function(e) clickTpE = e end)
+CreateButton("Jump Mod (กระโดดสูงพิเศษ)", function(e) jumpE = e if not e and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then local hum = LP.Character:FindFirstChildOfClass("Humanoid") hum.JumpPower = 50 hum.JumpHeight = 7.2 end end)
