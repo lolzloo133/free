@@ -16,7 +16,7 @@ local oL = {
     Bright = LT.Brightness, Shads = LT.GlobalShadows, Exp = LT.ExposureCompensation, Time = LT.ClockTime
 }
 
--- ปรับขนาดหน้าต่างเมนูกระชับพอดีกับปุ่มที่เหลือ (300)
+-- ปรับขนาดหน้าต่างเมนูกระชับพอดีกับปุ่มที่เหลือ
 local MF = Instance.new("Frame", SG) MF.BackgroundColor3, MF.Position, MF.Size, MF.BorderSizePixel = Color3.fromRGB(15,15,18), UDim2.new(0.5,-165,0.5,-142), UDim2.new(0,330,0,300), 0 
 Instance.new("UICorner", MF).CornerRadius = UDim.new(0,12)
 Instance.new("UIStroke", MF).Color = Color3.fromRGB(40,40,45)
@@ -73,6 +73,15 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
+-- ระบบกระโดดรัวๆ (Infinite Jump)
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and jumpE and input.KeyCode == Enum.KeyCode.Space then
+        if LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
+            LP.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
 local function checkWall(targetCharacter, targetHead)
     if not Cam or not LP.Character then return true end
     local params = RaycastParams.new()
@@ -92,7 +101,7 @@ RS.RenderStepped:Connect(function()
     end 
     if jumpE and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
         local hum = LP.Character:FindFirstChildOfClass("Humanoid")
-        if hum.UseJumpPower then hum.JumpPower = 120 else hum.JumpHeight = 25 end -- ปรับกระโดดสูงพิเศษแล้ว
+        if hum.UseJumpPower then hum.JumpPower = 120 else hum.JumpHeight = 25 end
     end
 
     if aimbotE and isClickingRight then
@@ -143,7 +152,7 @@ RS.RenderStepped:Connect(function()
                             distance = (LP.Character.Head.Position - head.Position).Magnitude
                         end
                         local weaponName = tool and tool.Name or "Bare Fists"
-                        espC[p].bb.Label.Text = string.format("%s\n%s\n%.0f", weaponName, p.Name, distance) -- แสดงระยะล่างสุดไม่มีจุดทศนิยม
+                        espC[p].bb.Label.Text = string.format("%s\n%s\n%.0f", weaponName, p.Name, distance)
                     end 
                 else 
                     rESP(p) 
@@ -193,4 +202,4 @@ CreateButton("Clear Env (กลางวัน/ลบหมอก/ลบหญ�
 CreateButton("Silent Aim (ดูดหัวอัตโนมัติ)", function(e) silentE = e end)
 CreateButton("Aimbot Lock (คลิกขวาค้างเพื่อล็อกเป้า)", function(e) aimbotE = e end)
 CreateButton("Noclip Mode (วิ่งทะลุกำแพง)", function(e) noclipE = e end)
-CreateButton("Jump Mod (กระโดดสูงพิเศษ)", function(e) jumpE = e if not e and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then local hum = LP.Character:FindFirstChildOfClass("Humanoid") hum.JumpPower = 50 hum.JumpHeight = 7.2 end end)
+CreateButton("Jump Mod (กระโดดสูง + รัวกลางอากาศ)", function(e) jumpE = e if not e and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then local hum = LP.Character:FindFirstChildOfClass("Humanoid") hum.JumpPower = 50 hum.JumpHeight = 7.2 end end)
